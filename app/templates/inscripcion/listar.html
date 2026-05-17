@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Inscripciones{% endblock %}
+{% block page_title %}Gestión de Inscripciones{% endblock %}
+{% block content %}
+<div class="table-card">
+    <div class="table-header">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-clipboard-list me-2" style="color:#006064;"></i>Listado de Inscripciones</h6>
+        <a href="{{ url_for('inscripcion.nuevo') }}" class="btn btn-primary-custom btn-sm"><i class="fas fa-plus me-1"></i> Nueva Inscripción</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>#</th><th>Estudiante</th><th>Carrera</th><th>Usuario</th><th>Estado</th><th>Fecha</th><th>Pagos</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for i in inscripciones %}
+                <tr>
+                    <td>{{ i.id_inscripcion }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if i.estudiante.foto %}
+                                <img src="{{ url_for('static', filename='uploads/' + i.estudiante.foto) }}" class="foto-circle" alt="foto">
+                            {% else %}
+                                <div class="foto-placeholder"><i class="fas fa-user"></i></div>
+                            {% endif %}
+                            <strong>{{ i.estudiante.nombre }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ i.carrera.nombre_carrera }}</td>
+                    <td>{{ i.usuario.username }}</td>
+                    <td><span class="badge {% if i.estado=='Activo' %}badge-activo{% elif i.estado=='Inactivo' %}badge-inactivo{% else %}badge-pendiente{% endif %} px-3 py-1 rounded-pill">{{ i.estado or '-' }}</span></td>
+                    <td>{{ i.fecha_inscripcion or '-' }}</td>
+                    <td><span class="badge bg-secondary rounded-pill px-3">{{ i.pagos|length }}</span></td>
+                    <td>
+                        <a href="{{ url_for('inscripcion.editar', id=i.id_inscripcion) }}" class="btn btn-sm btn-outline-primary rounded-3 me-1"><i class="fas fa-edit"></i></a>
+                        <form method="POST" action="{{ url_for('inscripcion.eliminar', id=i.id_inscripcion) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-3"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="text-center text-muted py-4">No hay inscripciones registradas.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
