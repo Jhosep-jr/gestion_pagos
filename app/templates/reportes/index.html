@@ -1,0 +1,121 @@
+{% extends 'base.html' %}
+{% block title %}Reportes{% endblock %}
+{% block page_title %}Reportes y Estadísticas{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('reportes.exportar_pdf') }}" target="_blank" class="btn btn-danger rounded-3 fw-bold">
+        <i class="fas fa-file-pdf me-2"></i>Exportar Reporte PDF
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="table-card h-100">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-table me-2 text-primary"></i>Pagos por Carrera</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Carrera</th><th>Total Pagos</th><th>Monto Total</th><th>Promedio</th></tr></thead>
+                    <tbody>
+                        {% for row in pagos_por_carrera %}
+                        <tr>
+                            <td><strong>{{ row.nombre_carrera }}</strong></td>
+                            <td><span class="badge bg-primary rounded-pill px-3">{{ row.total_pagos }}</span></td>
+                            <td><strong style="color:#2e7d32;">Bs. {{ "%.2f"|format(row.monto_total or 0) }}</strong></td>
+                            <td>Bs. {{ "%.2f"|format(row.monto_promedio or 0) }}</td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">Sin datos</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="table-card h-100">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-users me-2 text-success"></i>Top Estudiantes</h6>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Foto</th><th>Estudiante</th><th>Pagos</th><th>Total</th></tr></thead>
+                    <tbody>
+                        {% for row in top_estudiantes %}
+                        <tr>
+                            <td>
+                                {% if row.foto %}
+                                    <img src="{{ url_for('static', filename='uploads/' + row.foto) }}" class="foto-circle" alt="foto">
+                                {% else %}
+                                    <div class="foto-placeholder"><i class="fas fa-user"></i></div>
+                                {% endif %}
+                            </td>
+                            <td><strong>{{ row.nombre }}</strong></td>
+                            <td>{{ row.num_pagos }}</td>
+                            <td style="color:#2e7d32;"><strong>Bs. {{ "%.2f"|format(row.total_pagado or 0) }}</strong></td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="4" class="text-center text-muted py-3">Sin datos</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-bar me-2" style="color:#1a237e;"></i>Monto Total por Carrera</h6>
+            </div>
+            <div class="p-4"><canvas id="chartBarras" height="280"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-pie me-2" style="color:#880e4f;"></i>Inscripciones por Estado</h6>
+            </div>
+            <div class="p-4"><canvas id="chartPie" height="280"></canvas></div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-line me-2" style="color:#006064;"></i>Evolución de Pagos Mensuales (Bs.)</h6>
+            </div>
+            <div class="p-4"><canvas id="chartLinea" height="120"></canvas></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const COLORS=['#1a237e','#880e4f','#2e7d32','#e65100','#006064','#311b92','#bf360c','#004d40'];
+fetch('{{ url_for("reportes.api_pagos_carrera") }}').then(r=>r.json()).then(data=>{
+    new Chart(document.getElementById('chartBarras').getContext('2d'),{
+        type:'bar',data:{labels:data.labels.length?data.labels:['Sin datos'],
+        datasets:[{label:'Monto Total (Bs.)',data:data.data.length?data.data:[0],backgroundColor:COLORS,borderRadius:8,borderSkipped:false}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
+    });
+});
+fetch('{{ url_for("reportes.api_inscripciones_estado") }}').then(r=>r.json()).then(data=>{
+    new Chart(document.getElementById('chartPie').getContext('2d'),{
+        type:'pie',data:{labels:data.labels.length?data.labels:['Sin datos'],
+        datasets:[{data:data.data.length?data.data:[1],backgroundColor:COLORS,borderWidth:2,borderColor:'#fff'}]},
+        options:{responsive:true,plugins:{legend:{position:'right',labels:{font:{family:'Nunito',size:13}}}}}
+    });
+});
+fetch('{{ url_for("reportes.api_pagos_mensuales") }}').then(r=>r.json()).then(data=>{
+    new Chart(document.getElementById('chartLinea').getContext('2d'),{
+        type:'line',data:{labels:data.labels.length?data.labels:['Sin datos'],
+        datasets:[{label:'Monto (Bs.)',data:data.data.length?data.data:[0],borderColor:'#006064',backgroundColor:'rgba(0,96,100,.1)',borderWidth:3,pointBackgroundColor:'#006064',pointRadius:5,fill:true,tension:0.4}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
+    });
+});
+</script>
+{% endblock %}
