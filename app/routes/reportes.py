@@ -1,5 +1,6 @@
 import io
 import os
+import qrcode
 from flask import Blueprint, render_template, jsonify, make_response, current_app
 from flask_login import login_required
 from app.models import AporizacionDePago, InscripcionPostulante, Carrera, Estudiante, Usuario
@@ -90,6 +91,19 @@ def api_pagos_mensuales():
         mensuales[key] = mensuales.get(key, 0) + (p.monto or 0)
     meses_ordenados = sorted(mensuales.keys())
     return jsonify({'labels': meses_ordenados, 'data': [mensuales[m] for m in meses_ordenados]})
+
+
+def generar_qr_imagen(texto, size_cm=1.8):
+    """Genera un QR real y retorna un RLImage para ReportLab."""
+    qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M,
+                       box_size=6, border=2)
+    qr.add_data(texto)
+    qr.make(fit=True)
+    img_pil = qr.make_image(fill_color="black", back_color="white")
+    buf = io.BytesIO()
+    img_pil.save(buf, format='PNG')
+    buf.seek(0)
+    return RLImage(buf, width=size_cm*cm, height=size_cm*cm)
 
 
 @reportes_bp.route('/pdf')
@@ -186,12 +200,13 @@ def exportar_pdf():
 
     story.append(Spacer(1, 0.6*cm))
 
-    # ---- TABLA: Top estudiantes CON FOTO ----
+    # ---- TABLA: Top estudiantes CON FOTO + QR REAL ----
     story.append(Paragraph('4. Top Estudiantes — Mayor Monto Pagado', estilo_h2))
     if top_estudiantes:
-        header3 = [['Foto', 'Estudiante', 'N° Pagos', 'Total Pagado (Bs.)']]
+        header3 = [['Foto', 'QR', 'Estudiante', 'N° Pagos', 'Total Pagado (Bs.)']]
         rows3 = []
         for r in top_estudiantes:
+            # Foto
             foto_cell = ''
             if r.foto:
                 foto_path = os.path.join(current_app.root_path, 'static', 'uploads', r.foto)
@@ -199,22 +214,44 @@ def exportar_pdf():
                     try:
                         foto_cell = RLImage(foto_path, width=1.5*cm, height=1.5*cm)
                     except:
-                        foto_cell = 'Sin foto'
-            rows3.append([foto_cell, r.nombre, str(r.num_pagos), f'{r.total_pagado or 0:,.2f}'])
-        t3 = Table(header3 + rows3, colWidths=[2*cm, 8*cm, 2.5*cm, 4*cm])
+                        foto_cell = ''
+
+            # Buscar carrera del estudiante
+            inscripcion = db.session.query(
+                InscripcionPostulante, Carrera
+            ).join(Carrera, InscripcionPostulante.id_carrera == Carrera.id_carrera)\
+             .join(Estudiante, InscripcionPostulante.id_estudiante == Estudiante.id_Estudiante)\
+             .filter(Estudiante.nombre == r.nombre)\
+             .order_by(InscripcionPostulante.id_inscripcion.desc())\
+             .first()
+            nombre_carrera = inscripcion[1].nombre_carrera if inscripcion else 'No especificada'
+
+            # Generar QR con info del estudiante
+            qr_texto = (
+                f"Nombre: {r.nombre}\n"
+                f"Carrera: {nombre_carrera}\n"
+                f"Pagos: {r.num_pagos}\n"
+                f"Total: Bs. {r.total_pagado or 0:,.2f}"
+            )
+            qr_img = generar_qr_imagen(qr_texto, size_cm=1.8)
+
+            rows3.append([foto_cell, qr_img, r.nombre, str(r.num_pagos), f'{r.total_pagado or 0:,.2f}'])
+
+        t3 = Table(header3 + rows3, colWidths=[2*cm, 2*cm, 6.5*cm, 2*cm, 4*cm])
         t3.setStyle(TableStyle([
             ('BACKGROUND', (0, 0), (-1, 0), azul),
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
             ('FONTSIZE', (0, 0), (-1, -1), 9),
-            ('ALIGN', (0, 0), (0, -1), 'CENTER'),
-            ('ALIGN', (2, 0), (-1, -1), 'CENTER'),
+            ('ALIGN', (0, 0), (1, -1), 'CENTER'),
+            ('ALIGN', (3, 0), (-1, -1), 'CENTER'),
             ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
             ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#e8eaf6')]),
             ('BOX', (0, 0), (-1, -1), 1, azul),
             ('INNERGRID', (0, 0), (-1, -1), 0.3, colors.HexColor('#c5cae9')),
             ('TOPPADDING', (0, 0), (-1, -1), 5),
             ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+            ('ROWHEIGHT', (0, 1), (-1, -1), 2*cm),
         ]))
         story.append(t3)
 
