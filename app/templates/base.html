@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión de Pagos{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary:#1a237e; --primary-light:#283593; --accent:#ff6f00; --sidebar-w:260px; --bg:#f0f2f8; }
+        * { font-family:'Nunito',sans-serif; }
+        body { background:var(--bg); min-height:100vh; }
+        #sidebar { position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh; background:linear-gradient(180deg,var(--primary) 0%,#0d1b6e 100%); overflow-y:auto; z-index:1000; box-shadow:4px 0 20px rgba(0,0,0,.3); }
+        #sidebar .brand { padding:24px 20px 16px; border-bottom:1px solid rgba(255,255,255,.1); }
+        #sidebar .brand h4 { color:#fff; font-weight:800; margin:0; font-size:1.1rem; }
+        #sidebar .brand small { color:rgba(255,255,255,.5); font-size:.75rem; }
+        #sidebar .nav-section { padding:12px 16px 4px; font-size:.7rem; font-weight:700; color:rgba(255,255,255,.35); letter-spacing:.1em; text-transform:uppercase; }
+        #sidebar .nav-link { color:rgba(255,255,255,.75); padding:10px 20px; border-radius:8px; margin:2px 8px; transition:all .2s; display:flex; align-items:center; gap:10px; }
+        #sidebar .nav-link:hover, #sidebar .nav-link.active { background:rgba(255,255,255,.12); color:#fff; }
+        #sidebar .nav-link i { width:20px; text-align:center; font-size:.9rem; }
+        #main { margin-left:var(--sidebar-w); min-height:100vh; }
+        #topbar { background:#fff; padding:14px 28px; display:flex; justify-content:space-between; align-items:center; box-shadow:0 2px 8px rgba(0,0,0,.06); position:sticky; top:0; z-index:100; }
+        #topbar h5 { margin:0; font-weight:700; color:var(--primary); }
+        .content { padding:28px; }
+        .stat-card { background:#fff; border-radius:16px; padding:24px; position:relative; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.07); transition:transform .2s,box-shadow .2s; }
+        .stat-card:hover { transform:translateY(-3px); box-shadow:0 6px 20px rgba(0,0,0,.12); }
+        .stat-card .icon-box { width:52px; height:52px; border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:1.4rem; margin-bottom:16px; }
+        .stat-card h3 { font-size:2rem; font-weight:800; margin:0; }
+        .stat-card p { color:#666; margin:4px 0 0; font-size:.9rem; }
+        .table-card { background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 2px 12px rgba(0,0,0,.07); }
+        .table-card .table-header { padding:20px 24px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center; }
+        .table { margin:0; }
+        .table thead th { background:#f8f9ff; color:var(--primary); font-weight:700; font-size:.85rem; border:none; padding:12px 16px; }
+        .table td { padding:12px 16px; vertical-align:middle; border-color:#f0f0f0; }
+        .table tbody tr:hover { background:#f8f9ff; }
+        .badge-activo { background:#e8f5e9; color:#2e7d32; }
+        .badge-inactivo { background:#fce4ec; color:#c62828; }
+        .badge-pendiente { background:#fff8e1; color:#e65100; }
+        .btn-primary-custom { background:var(--primary); color:#fff; border:none; border-radius:10px; padding:8px 20px; font-weight:600; }
+        .btn-primary-custom:hover { background:var(--primary-light); color:#fff; }
+        .form-card { background:#fff; border-radius:16px; padding:32px; box-shadow:0 2px 12px rgba(0,0,0,.07); }
+        .form-label { font-weight:600; color:#333; font-size:.9rem; }
+        .form-control, .form-select { border-radius:10px; border:1.5px solid #e0e0e0; padding:10px 14px; transition:border-color .2s; }
+        .form-control:focus, .form-select:focus { border-color:var(--primary); box-shadow:0 0 0 3px rgba(26,35,126,.1); }
+        .alert { border-radius:12px; border:none; }
+        .foto-circle { width:44px; height:44px; border-radius:50%; object-fit:cover; border:2px solid #e0e0e0; }
+        .foto-placeholder { width:44px; height:44px; border-radius:50%; background:#e8eaf6; display:inline-flex; align-items:center; justify-content:center; color:#1a237e; font-size:1.1rem; }
+    </style>
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<nav id="sidebar">
+    <div class="brand">
+        <h4><i class="fas fa-university me-2"></i>GestiónPagos</h4>
+        <small>Sistema de Gestión Académica</small>
+    </div>
+    <div class="mt-2">
+        <div class="nav-section">Principal</div>
+        <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint=='main.dashboard' %}active{% endif %}">
+            <i class="fas fa-th-large"></i> Dashboard
+        </a>
+        <div class="nav-section">Gestión</div>
+        <a href="{{ url_for('auth.listar_usuarios') }}" class="nav-link {% if 'usuario' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-users-cog"></i> Usuarios
+        </a>
+        <a href="{{ url_for('estudiante.listar') }}" class="nav-link {% if 'estudiante' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-user-graduate"></i> Estudiantes
+        </a>
+        <a href="{{ url_for('carrera.listar') }}" class="nav-link {% if 'carrera' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-book-open"></i> Carreras
+        </a>
+        <a href="{{ url_for('inscripcion.listar') }}" class="nav-link {% if 'inscripcion' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-clipboard-list"></i> Inscripciones
+        </a>
+        <a href="{{ url_for('pago.listar') }}" class="nav-link {% if 'pago' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-money-bill-wave"></i> Pagos
+        </a>
+        <div class="nav-section">Análisis</div>
+        <a href="{{ url_for('reportes.index') }}" class="nav-link {% if 'reportes' in request.endpoint %}active{% endif %}">
+            <i class="fas fa-chart-bar"></i> Reportes
+        </a>
+        <div class="nav-section">Sistema</div>
+        <a href="{{ url_for('auth.logout') }}" class="nav-link">
+            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+        </a>
+    </div>
+</nav>
+<div id="main">
+    <div id="topbar">
+        <h5>{% block page_title %}Dashboard{% endblock %}</h5>
+        <span class="badge bg-primary rounded-pill px-3 py-2">
+            <i class="fas fa-user me-1"></i> {{ current_user.username }}
+        </span>
+    </div>
+    <div class="content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}{% for cat,msg in messages %}
+                <div class="alert alert-{{ cat }} alert-dismissible fade show">
+                    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}{% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</div>
+{% else %}
+    {% block auth_content %}{% endblock %}
+{% endif %}
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
