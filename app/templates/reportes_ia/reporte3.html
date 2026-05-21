@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% block title %}Reporte 3 — Predicción IA{% endblock %}
+{% block page_title %}Reporte 3 — Predicción y Recomendaciones Inteligentes{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO -->
+<div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,#880e4f,#ad1457);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+        <i class="fas fa-robot fa-lg text-white"></i>
+    </div>
+    <div>
+        <h4 style="font-weight:800;color:#1a237e;margin:0;">Predicción y Recomendaciones Inteligentes</h4>
+        <!-- <span class="ia-badge" style="background:linear-gradient(135deg,#880e4f,#ad1457);"><i class="fas fa-microchip"></i> Modelo Predictivo + Claude AI</span> -->
+    </div>
+</div>
+
+<!-- EXPLICACIÓN DEL MODELO -->
+<div class="table-card mb-4 p-4" style="border-left:5px solid #880e4f;">
+    <h6 style="font-weight:800;color:#880e4f;margin-bottom:10px;"><i class="fas fa-info-circle me-2"></i>Modelo Utilizado</h6>
+    <div class="row g-3">
+        <div class="col-md-6">
+            <strong>📊 Técnica:</strong> Promedio Móvil de 3 meses (MA-3) con factor de tendencia<br>
+            <strong>🎯 Objetivo:</strong> Proyectar recaudación para los próximos 3 meses<br>
+            <strong>🔍 Variables:</strong> Historial mensual de pagos, tasa de crecimiento
+        </div>
+        <div class="col-md-6">
+            <strong>🤖 IA:</strong> Claude AI (Anthropic) para análisis contextual<br>
+            <strong>⚡ Tiempo real:</strong> Datos calculados al momento de la consulta<br>
+            <strong>🛡️ Riesgo:</strong> Clasificación automática de morosidad por carrera
+        </div>
+    </div>
+</div>
+
+<!-- MÉTRICAS DE PREDICCIÓN -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:#e8f5e9;"><i class="fas fa-history" style="color:#2e7d32;"></i></div>
+            <h3 style="color:#2e7d32;font-size:1.3rem;">Bs. {{ "%.0f"|format(total_recaudado) }}</h3>
+            <p>Recaudado Histórico</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:#e8eaf6;"><i class="fas fa-crystal-ball" style="color:#1a237e;"></i></div>
+            <h3 style="color:#1a237e;font-size:1.3rem;">Bs. {{ "%.0f"|format(total_proyectado) }}</h3>
+            <p>Proyectado (3 meses)</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:#fff3e0;"><i class="fas fa-exclamation-triangle" style="color:#e65100;"></i></div>
+            <h3 style="color:#e65100;">{{ riesgo_data|length }}</h3>
+            <p>Carreras Analizadas</p>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICA PREDICCIÓN -->
+<div class="table-card mb-4">
+    <div class="table-header">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-area me-2" style="color:#880e4f;"></i>Historial vs Proyección de Pagos (Bs.)</h6>
+        <span class="badge bg-danger rounded-pill px-3">Próximos 3 meses proyectados</span>
+    </div>
+    <div class="p-4"><canvas id="chartPrediccion" height="130"></canvas></div>
+</div>
+
+<!-- RIESGO DE MOROSIDAD -->
+<div class="table-card mb-4">
+    <div class="table-header">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-shield-alt me-2" style="color:#e65100;"></i>Análisis de Riesgo de Morosidad por Carrera</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Carrera</th><th>Inscritos</th><th>Pagos</th><th>Tasa de Pago</th><th>Nivel de Riesgo</th><th>Acciones Sugeridas</th></tr></thead>
+            <tbody>
+                {% for r in riesgo_data %}
+                <tr>
+                    <td><strong>{{ r.carrera }}</strong></td>
+                    <td>{{ r.inscritos }}</td>
+                    <td>{{ r.pagos }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="height:8px;background:#f0f0f0;border-radius:4px;width:80px;overflow:hidden;">
+                                <div style="height:100%;width:{{ r.tasa_pago }}%;background:{% if r.tasa_pago >= 70 %}#2e7d32{% elif r.tasa_pago >= 30 %}#e65100{% else %}#c62828{% endif %};border-radius:4px;"></div>
+                            </div>
+                            <strong>{{ r.tasa_pago }}%</strong>
+                        </div>
+                    </td>
+                    <td>
+                        {% if r.nivel_riesgo == 'Alto' %}
+                            <span class="riesgo-alto">🔴 Alto</span>
+                        {% elif r.nivel_riesgo == 'Medio' %}
+                            <span class="riesgo-medio">🟡 Medio</span>
+                        {% else %}
+                            <span class="riesgo-bajo">🟢 Bajo</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:.82rem;">
+                        {% if r.nivel_riesgo == 'Alto' %}
+                            Notificar urgente · Convenio de pago
+                        {% elif r.nivel_riesgo == 'Medio' %}
+                            Recordatorio · Seguimiento mensual
+                        {% else %}
+                            Mantener · Reconocimiento
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-3">Sin datos de riesgo</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- GRÁFICA RIESGO -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-5">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-pie me-2" style="color:#c62828;"></i>Distribución del Riesgo</h6>
+            </div>
+            <div class="p-4"><canvas id="chartRiesgo" height="260"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-7">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-bar me-2" style="color:#006064;"></i>Tasa de Pago por Carrera (%)</h6>
+            </div>
+            <div class="p-4"><canvas id="chartTasa" height="260"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- ANÁLISIS IA PREDICCIÓN -->
+<div class="ia-card" style="border-left-color:#880e4f;">
+    <div class="ia-header">
+        <div class="ia-icon" style="background:linear-gradient(135deg,#880e4f,#ad1457);"><i class="fas fa-robot"></i></div>
+        <div>
+            <h5 style="font-weight:800;margin:0;color:#880e4f;">Predicción y Recomendaciones —  Groq Llama IA</h5>
+            <small class="text-muted">Análisis predictivo y recomendaciones accionables generadas con IA</small>
+        </div>
+    </div>
+    <div class="ia-content">{{ analisis_ia }}</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Datos
+const mesesHist = {{ meses_ord|safe }};
+const valHist   = {{ valores|safe }};
+const mesesPred = {{ prediccion_meses|safe }};
+const valPred   = {{ prediccion_vals|safe }};
+
+// Gráfica combinada: historial + predicción
+const labelsAll = [...mesesHist, ...mesesPred];
+const histData  = [...valHist, ...Array(mesesPred.length).fill(null)];
+const predData  = [...Array(mesesHist.length > 0 ? mesesHist.length - 1 : 0).fill(null),
+                   mesesHist.length > 0 ? valHist[valHist.length-1] : null,
+                   ...valPred];
+
+new Chart(document.getElementById('chartPrediccion'),{
+    type:'line',
+    data:{
+        labels: labelsAll.length ? labelsAll : ['Sin datos'],
+        datasets:[
+            {
+                label:'Historial (Bs.)',
+                data: histData,
+                borderColor:'#1a237e', backgroundColor:'rgba(26,35,126,.08)',
+                borderWidth:3, pointRadius:4, fill:true, tension:0.3,
+                spanGaps:false
+            },
+            {
+                label:'Proyección (Bs.)',
+                data: predData,
+                borderColor:'#880e4f', backgroundColor:'rgba(136,14,79,.08)',
+                borderWidth:3, pointRadius:5, borderDash:[8,4], fill:true, tension:0.3,
+                spanGaps:false
+            }
+        ]
+    },
+    options:{
+        responsive:true,
+        plugins:{legend:{position:'top',labels:{font:{family:'Nunito'}}}},
+        scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}
+    }
+});
+
+// Riesgo pie
+const nAlto  = {{ riesgo_data | selectattr('nivel_riesgo','equalto','Alto')  | list | length }};
+const nMedio = {{ riesgo_data | selectattr('nivel_riesgo','equalto','Medio') | list | length }};
+const nBajo  = {{ riesgo_data | selectattr('nivel_riesgo','equalto','Bajo')  | list | length }};
+new Chart(document.getElementById('chartRiesgo'),{
+    type:'doughnut',
+    data:{
+        labels:['Alto','Medio','Bajo'],
+        datasets:[{data:[nAlto,nMedio,nBajo],backgroundColor:['#c62828','#e65100','#2e7d32'],borderWidth:3,borderColor:'#fff'}]
+    },
+    options:{responsive:true,cutout:'55%',plugins:{legend:{position:'bottom',labels:{font:{family:'Nunito',size:12}}}}}
+});
+
+// Tasa de pago por carrera
+const carrNames = [{% for r in riesgo_data %}"{{ r.carrera|truncate(18,True,'…') }}",{% endfor %}];
+const tasas     = [{% for r in riesgo_data %}{{ r.tasa_pago }},{% endfor %}];
+const bgColors  = [{% for r in riesgo_data %}"{% if r.nivel_riesgo=='Alto' %}#c62828{% elif r.nivel_riesgo=='Medio' %}#e65100{% else %}#2e7d32{% endif %}",{% endfor %}];
+new Chart(document.getElementById('chartTasa'),{
+    type:'bar',
+    data:{
+        labels: carrNames.length ? carrNames : ['Sin datos'],
+        datasets:[{label:'Tasa de Pago %',data:tasas.length?tasas:[0],backgroundColor:bgColors,borderRadius:8,borderSkipped:false}]
+    },
+    options:{
+        responsive:true,
+        plugins:{legend:{display:false}},
+        scales:{
+            y:{beginAtZero:true,max:100,grid:{color:'#f0f0f0'},ticks:{callback:v=>v+'%'}},
+            x:{grid:{display:false}}
+        }
+    }
+});
+</script>
+{% endblock %}

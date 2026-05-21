@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+<div class="row g-4 mb-4">
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="icon-box" style="background:#e8eaf6;"><i class="fas fa-users-cog" style="color:#1a237e;"></i></div>
+            <h3 style="color:#1a237e;">{{ total_usuarios }}</h3><p>Usuarios</p>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="icon-box" style="background:#e8f5e9;"><i class="fas fa-user-graduate" style="color:#2e7d32;"></i></div>
+            <h3 style="color:#2e7d32;">{{ total_estudiantes }}</h3><p>Estudiantes</p>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="icon-box" style="background:#fff3e0;"><i class="fas fa-book-open" style="color:#e65100;"></i></div>
+            <h3 style="color:#e65100;">{{ total_carreras }}</h3><p>Carreras</p>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="icon-box" style="background:#e0f7fa;"><i class="fas fa-clipboard-list" style="color:#006064;"></i></div>
+            <h3 style="color:#006064;">{{ total_inscripciones }}</h3><p>Inscripciones</p>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="icon-box" style="background:#fce4ec;"><i class="fas fa-money-bill-wave" style="color:#880e4f;"></i></div>
+            <h3 style="color:#880e4f;">{{ total_pagos }}</h3><p>Pagos</p>
+        </div>
+    </div>
+    <div class="col-md-4 col-lg-2">
+        <div class="stat-card">
+            <div class="icon-box" style="background:#f3e5f5;"><i class="fas fa-dollar-sign" style="color:#4a148c;"></i></div>
+            <h3 style="color:#4a148c;font-size:1.3rem;">Bs.{{ "%.0f"|format(monto_total) }}</h3><p>Monto Total</p>
+        </div>
+    </div>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="table-card">
+            <div class="table-header"><h6 style="font-weight:700;margin:0;">Accesos Rápidos</h6></div>
+            <div class="p-4">
+                <div class="row g-3">
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('estudiante.nuevo') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:#e8f5e9;">
+                            <i class="fas fa-user-graduate fa-lg mb-2" style="color:#2e7d32;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#2e7d32;">Nuevo Estudiante</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('inscripcion.nuevo') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:#e0f7fa;">
+                            <i class="fas fa-clipboard-plus fa-lg mb-2" style="color:#006064;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#006064;">Nueva Inscripción</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('pago.nuevo') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:#fce4ec;">
+                            <i class="fas fa-plus-circle fa-lg mb-2" style="color:#880e4f;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#880e4f;">Registrar Pago</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('carrera.nuevo') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:#fff3e0;">
+                            <i class="fas fa-book-medical fa-lg mb-2" style="color:#e65100;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#e65100;">Nueva Carrera</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('reportes.index') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:#f3e5f5;">
+                            <i class="fas fa-chart-pie fa-lg mb-2" style="color:#4a148c;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#4a148c;">Ver Reportes</div>
+                        </a>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <a href="{{ url_for('reportes.exportar_pdf') }}" target="_blank" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:#ffebee;">
+                            <i class="fas fa-file-pdf fa-lg mb-2" style="color:#c62828;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#c62828;">Reporte PDF</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- IA REPORTS -->
+                <hr class="my-3">
+                <p style="font-size:.75rem;font-weight:800;color:#4a148c;letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;">✦ Reportes con Inteligencia Artificial</p>
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <a href="{{ url_for('reportes_ia.reporte1') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:linear-gradient(135deg,#f3e5f5,#ede7f6);border:1.5px solid #ce93d8;">
+                            <i class="fas fa-brain fa-lg mb-2" style="color:#7b1fa2;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#4a148c;">R1 · Análisis General</div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('reportes_ia.reporte2') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:linear-gradient(135deg,#e0f7fa,#e0f2f1);border:1.5px solid #80cbc4;">
+                            <i class="fas fa-chart-line fa-lg mb-2" style="color:#006064;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#006064;">R2 · Tendencias IA</div>
+                        </a>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('reportes_ia.reporte3') }}" class="d-block text-center p-3 rounded-3 text-decoration-none" style="background:linear-gradient(135deg,#fce4ec,#f8bbd0);border:1.5px solid #f48fb1;">
+                            <i class="fas fa-robot fa-lg mb-2" style="color:#880e4f;"></i>
+                            <div style="font-size:.85rem;font-weight:700;color:#880e4f;">R3 · Predicción IA</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="table-card h-100">
+            <div class="table-header"><h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-pie me-2 text-primary"></i>Inscripciones</h6></div>
+            <div class="p-4"><canvas id="miniChart" height="200"></canvas></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+fetch('{{ url_for("reportes.api_inscripciones_estado") }}').then(r=>r.json()).then(data=>{
+    new Chart(document.getElementById('miniChart').getContext('2d'),{
+        type:'doughnut',
+        data:{labels:data.labels,datasets:[{data:data.data,backgroundColor:['#1a237e','#ff6f00','#2e7d32','#880e4f','#006064'],borderWidth:0}]},
+        options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'Nunito',size:12}}}}}
+    });
+}).catch(()=>{ document.getElementById('miniChart').parentElement.innerHTML='<p class="text-muted text-center">Sin datos aún</p>'; });
+</script>
+{% endblock %}

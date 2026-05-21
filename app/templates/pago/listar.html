@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}Pagos{% endblock %}
+{% block page_title %}Gestión de Pagos{% endblock %}
+{% block content %}
+<div class="table-card">
+    <div class="table-header">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-money-bill-wave me-2" style="color:#880e4f;"></i>Listado de Pagos</h6>
+        <a href="{{ url_for('pago.nuevo') }}" class="btn btn-primary-custom btn-sm"><i class="fas fa-plus me-1"></i> Registrar Pago</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>#</th><th>Estudiante</th><th>Carrera</th><th>Monto (Bs.)</th><th>Fecha Autorización</th><th>Acciones</th></tr></thead>
+            <tbody>
+                {% for p in pagos %}
+                <tr>
+                    <td>{{ p.id_pago }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            {% if p.inscripcion.estudiante.foto %}
+                                <img src="{{ url_for('static', filename='uploads/' + p.inscripcion.estudiante.foto) }}" class="foto-circle" alt="foto">
+                            {% else %}
+                                <div class="foto-placeholder"><i class="fas fa-user"></i></div>
+                            {% endif %}
+                            <strong>{{ p.inscripcion.estudiante.nombre }}</strong>
+                        </div>
+                    </td>
+                    <td>{{ p.inscripcion.carrera.nombre_carrera }}</td>
+                    <td><strong style="color:#2e7d32;">Bs. {{ "%.2f"|format(p.monto or 0) }}</strong></td>
+                    <td>{{ p.fecha_Autorizacion or '-' }}</td>
+                    <td>
+                        <a href="{{ url_for('pago.exportar_pdf', id=p.id_pago) }}" target="_blank" class="btn btn-sm btn-outline-danger rounded-3 me-1" title="Ver recibo PDF">
+                            <i class="fas fa-file-pdf"></i>
+                        </a>
+                        <a href="{{ url_for('pago.editar', id=p.id_pago) }}" class="btn btn-sm btn-outline-primary rounded-3 me-1"><i class="fas fa-edit"></i></a>
+                        <form method="POST" action="{{ url_for('pago.eliminar', id=p.id_pago) }}" style="display:inline;" onsubmit="return confirm('¿Eliminar este pago?')">
+                            <button type="submit" class="btn btn-sm btn-outline-danger rounded-3"><i class="fas fa-trash"></i></button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="text-center text-muted py-4">No hay pagos registrados.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

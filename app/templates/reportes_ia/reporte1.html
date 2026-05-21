@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% block title %}Reporte 1 — Análisis General IA{% endblock %}
+{% block page_title %}Reporte 1 — Análisis General del Sistema{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO -->
+<div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,#4a148c,#7b1fa2);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+        <i class="fas fa-brain fa-lg text-white"></i>
+    </div>
+    <div>
+        <h4 style="font-weight:800;color:#1a237e;margin:0;">Análisis General del Sistema</h4>
+        
+    </div>
+</div>
+
+<!-- MÉTRICAS GENERALES -->
+<div class="row g-3 mb-4">
+    {% for label, val, color, icon in [
+        ('Estudiantes', total_estudiantes, '#1a237e', 'fa-user-graduate'),
+        ('Inscripciones', total_inscripciones, '#006064', 'fa-clipboard-list'),
+        ('Pagos Realizados', total_pagos, '#880e4f', 'fa-money-bill-wave'),
+        ('Carreras', total_carreras, '#e65100', 'fa-book-open'),
+        ('Usuarios', total_usuarios, '#2e7d32', 'fa-users-cog'),
+    ] %}
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:{{ color }}22;"><i class="fas {{ icon }}" style="color:{{ color }};"></i></div>
+            <h3 style="color:{{ color }};">{{ val }}</h3>
+            <p>{{ label }}</p>
+        </div>
+    </div>
+    {% endfor %}
+    <div class="col-6 col-md-4 col-lg-2">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:#f3e5f5;"><i class="fas fa-dollar-sign" style="color:#4a148c;"></i></div>
+            <h3 style="color:#4a148c;font-size:1.2rem;">Bs.{{ "%.0f"|format(monto_total) }}</h3>
+            <p>Monto Total</p>
+        </div>
+    </div>
+</div>
+
+<!-- PILLS DETALLE -->
+<div class="table-card mb-4 p-4">
+    <h6 style="font-weight:700;color:#1a237e;margin-bottom:12px;"><i class="fas fa-tachometer-alt me-2"></i>Indicadores Clave</h6>
+    <div>
+        <div class="metric-pill"><span>Bs. {{ "%.2f"|format(monto_total) }}</span>Recaudación Total</div>
+        <div class="metric-pill"><span>Bs. {{ "%.2f"|format(monto_promedio) }}</span>Pago Promedio</div>
+        <div class="metric-pill"><span>{{ total_pagos }}</span>Total Pagos</div>
+        <div class="metric-pill"><span>{{ total_inscripciones }}</span>Inscripciones</div>
+        {% if total_inscripciones > 0 %}
+        <div class="metric-pill"><span>{{ "%.0f"|format((total_pagos / total_inscripciones) * 100) }}%</span>Tasa de Pago</div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- GRÁFICAS -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-7">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-bar me-2" style="color:#1a237e;"></i>Recaudación por Carrera (Bs.)</h6>
+            </div>
+            <div class="p-4"><canvas id="chartCarrera" height="260"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-5">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-pie me-2" style="color:#880e4f;"></i>Estado de Inscripciones</h6>
+            </div>
+            <div class="p-4"><canvas id="chartEstado" height="260"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLA DETALLE -->
+<div class="table-card mb-4">
+    <div class="table-header">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-table me-2 text-primary"></i>Detalle por Carrera</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>Carrera</th><th>Nº Pagos</th><th>Monto Total</th><th>Participación</th></tr></thead>
+            <tbody>
+                {% for r in pagos_carrera %}
+                {% set pct = (r.monto / monto_total * 100) if monto_total > 0 else 0 %}
+                <tr>
+                    <td><strong>{{ r.nombre_carrera }}</strong></td>
+                    <td><span class="badge bg-primary rounded-pill px-3">{{ r.n_pagos }}</span></td>
+                    <td><strong style="color:#2e7d32;">Bs. {{ "%.2f"|format(r.monto or 0) }}</strong></td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div style="height:8px;background:#e8eaf6;border-radius:4px;flex:1;overflow:hidden;">
+                                <div style="height:100%;width:{{ pct }}%;background:#1a237e;border-radius:4px;"></div>
+                            </div>
+                            <small>{{ "%.1f"|format(pct) }}%</small>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="text-center text-muted py-3">Sin datos</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ANÁLISIS IA -->
+<div class="ia-card">
+    <div class="ia-header">
+        <div class="ia-icon"><i class="fas fa-brain"></i></div>
+        <div>
+            <h5 style="font-weight:800;margin:0;color:#1a73e8;">Análisis Automático — — Groq Llama IA</h5>
+            <small class="text-muted">Generado en tiempo real con inteligencia artificial gratuita</small>
+        </div>
+    </div>
+    <div class="ia-content">{{ analisis_ia }}</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const C=['#1a237e','#880e4f','#2e7d32','#e65100','#006064','#311b92'];
+fetch('{{ url_for("reportes_ia.api_r1_pagos_carrera") }}').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('chartCarrera'),{
+        type:'bar',
+        data:{labels:d.labels.length?d.labels:['Sin datos'],datasets:[{label:'Bs.',data:d.data.length?d.data:[0],backgroundColor:C,borderRadius:10,borderSkipped:false}]},
+        options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
+    });
+});
+fetch('{{ url_for("reportes_ia.api_r1_estado") }}').then(r=>r.json()).then(d=>{
+    new Chart(document.getElementById('chartEstado'),{
+        type:'doughnut',
+        data:{labels:d.labels.length?d.labels:['Sin datos'],datasets:[{data:d.data.length?d.data:[1],backgroundColor:C,borderWidth:3,borderColor:'#fff'}]},
+        options:{responsive:true,cutout:'60%',plugins:{legend:{position:'bottom',labels:{font:{family:'Nunito',size:12}}}}}
+    });
+});
+</script>
+{% endblock %}

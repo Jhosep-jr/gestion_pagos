@@ -1,0 +1,175 @@
+{% extends 'base.html' %}
+{% block title %}Reporte 2 — Tendencias IA{% endblock %}
+{% block page_title %}Reporte 2 — Tendencias y Comportamiento{% endblock %}
+
+{% block content %}
+<!-- ENCABEZADO -->
+<div class="d-flex align-items-center gap-3 mb-4">
+    <div style="width:52px;height:52px;background:linear-gradient(135deg,#006064,#00838f);border-radius:14px;display:flex;align-items:center;justify-content:center;">
+        <i class="fas fa-chart-line fa-lg text-white"></i>
+    </div>
+    <div>
+        <h4 style="font-weight:800;color:#1a237e;margin:0;">Tendencias y Comportamiento</h4>
+        <!-- <span class="ia-badge" style="background:linear-gradient(135deg,#006064,#00838f);"><i class="fas fa-robot"></i> Análisis de Patrones con IA</span> -->
+    </div>
+</div>
+
+<!-- TARJETA TENDENCIA -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:{% if tendencia == 'crecimiento' %}#e8f5e9{% elif tendencia == 'descenso' %}#fce4ec{% else %}#fff8e1{% endif %};">
+                <i class="fas {% if tendencia == 'crecimiento' %}fa-arrow-trend-up{% elif tendencia == 'descenso' %}fa-arrow-trend-down{% else %}fa-minus{% endif %}"
+                   style="color:{% if tendencia == 'crecimiento' %}#2e7d32{% elif tendencia == 'descenso' %}#c62828{% else %}#e65100{% endif %};"></i>
+            </div>
+            <h3 style="color:{% if tendencia == 'crecimiento' %}#2e7d32{% elif tendencia == 'descenso' %}#c62828{% else %}#e65100{% endif %};">
+                {{ tendencia|capitalize }}
+            </h3>
+            <p>Tendencia General</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:{% if cambio_pct > 0 %}#e8f5e9{% else %}#fce4ec{% endif %};">
+                <i class="fas fa-percent" style="color:{% if cambio_pct > 0 %}#2e7d32{% else %}#c62828{% endif %};"></i>
+            </div>
+            <h3 style="color:{% if cambio_pct > 0 %}#2e7d32{% else %}#c62828{% endif %};">
+                {{ "%+.1f"|format(cambio_pct) }}%
+            </h3>
+            <p>Variación Último Mes</p>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="stat-card text-center">
+            <div class="icon-box mx-auto" style="background:#e8eaf6;">
+                <i class="fas fa-users" style="color:#1a237e;"></i>
+            </div>
+            <h3 style="color:#1a237e;">{{ top_est|length }}</h3>
+            <p>Estudiantes Activos</p>
+        </div>
+    </div>
+</div>
+
+<!-- GRÁFICA DE LÍNEA -->
+<div class="table-card mb-4">
+    <div class="table-header">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-chart-line me-2" style="color:#006064;"></i>Evolución Mensual de Pagos (Bs.)</h6>
+        <span class="badge {% if tendencia=='crecimiento' %}bg-success{% elif tendencia=='descenso' %}bg-danger{% else %}bg-warning text-dark{% endif %} rounded-pill px-3">
+            {{ tendencia|capitalize }} {{ "%+.1f"|format(cambio_pct) }}%
+        </span>
+    </div>
+    <div class="p-4"><canvas id="chartLinea" height="120"></canvas></div>
+</div>
+
+<!-- DOS GRÁFICAS ABAJO -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-trophy me-2" style="color:#e65100;"></i>Top 5 Estudiantes Pagadores</h6>
+            </div>
+            <div class="p-4"><canvas id="chartTop" height="280"></canvas></div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="table-card">
+            <div class="table-header">
+                <h6 style="font-weight:700;margin:0;"><i class="fas fa-university me-2" style="color:#880e4f;"></i>Inscripciones por Carrera</h6>
+            </div>
+            <div class="p-4"><canvas id="chartCarrera" height="280"></canvas></div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLA TOP ESTUDIANTES -->
+<div class="table-card mb-4">
+    <div class="table-header">
+        <h6 style="font-weight:700;margin:0;"><i class="fas fa-medal me-2 text-warning"></i>Ranking de Estudiantes</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table">
+            <thead><tr><th>#</th><th>Estudiante</th><th>Nº Pagos</th><th>Total Pagado</th><th>Comportamiento</th></tr></thead>
+            <tbody>
+                {% for r in top_est %}
+                <tr>
+                    <td>
+                        {% if loop.index == 1 %}<span style="font-size:1.3rem;">🥇</span>
+                        {% elif loop.index == 2 %}<span style="font-size:1.3rem;">🥈</span>
+                        {% elif loop.index == 3 %}<span style="font-size:1.3rem;">🥉</span>
+                        {% else %}<strong style="color:#666;">{{ loop.index }}</strong>{% endif %}
+                    </td>
+                    <td><strong>{{ r.nombre }}</strong></td>
+                    <td><span class="badge bg-primary rounded-pill px-3">{{ r.n }}</span></td>
+                    <td><strong style="color:#2e7d32;">Bs. {{ "%.2f"|format(r.total or 0) }}</strong></td>
+                    <td>
+                        {% if loop.index <= 2 %}
+                            <span class="riesgo-bajo">⭐ Pagador frecuente</span>
+                        {% elif loop.index == 3 %}
+                            <span class="riesgo-medio">✓ Regular</span>
+                        {% else %}
+                            <span style="background:#e8eaf6;color:#1a237e;border-radius:8px;padding:3px 10px;font-size:.8rem;font-weight:700;">En seguimiento</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="text-center text-muted py-3">Sin datos</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ANÁLISIS IA -->
+<div class="ia-card" style="border-left-color:#006064;">
+    <div class="ia-header">
+        <div class="ia-icon" style="background:linear-gradient(135deg,#006064,#00838f);"><i class="fas fa-chart-line"></i></div>
+        <div>
+            <h5 style="font-weight:800;margin:0;color:#006064;">Interpretación Inteligente de Tendencias</h5>
+            <small class="text-muted">Análisis de patrones y comportamientos generado por --  Groq Llama IA</small>
+        </div>
+    </div>
+    <div class="ia-content">{{ analisis_ia }}</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const meses  = {{ meses|safe }};
+const montos = {{ montos_mes|safe }};
+const C = ['#1a237e','#880e4f','#2e7d32','#e65100','#006064','#311b92'];
+
+// Línea mensual
+new Chart(document.getElementById('chartLinea'),{
+    type:'line',
+    data:{labels:meses.length?meses:['Sin datos'],datasets:[{
+        label:'Monto (Bs.)',
+        data:montos.length?montos:[0],
+        borderColor:'#006064',backgroundColor:'rgba(0,96,100,.1)',
+        borderWidth:3,pointBackgroundColor:'#006064',pointRadius:5,fill:true,tension:0.4
+    }]},
+    options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'#f0f0f0'}},x:{grid:{display:false}}}}
+});
+
+// Top estudiantes
+const topNombres = [{% for r in top_est %}"{{ r.nombre|truncate(18,True,'…') }}",{% endfor %}];
+const topTotales = [{% for r in top_est %}{{ r.total or 0 }},{% endfor %}];
+new Chart(document.getElementById('chartTop'),{
+    type:'bar',
+    data:{labels:topNombres.length?topNombres:['Sin datos'],datasets:[{
+        label:'Total Pagado (Bs.)',
+        data:topTotales.length?topTotales:[0],
+        backgroundColor:C,borderRadius:8,borderSkipped:false
+    }]},
+    options:{indexAxis:'y',responsive:true,plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#f0f0f0'}},y:{grid:{display:false}}}}
+});
+
+// Inscripciones por carrera
+const cNombres = [{% for r in insc_carrera %}"{{ r.nombre_carrera|truncate(18,True,'…') }}",{% endfor %}];
+const cTotales = [{% for r in insc_carrera %}{{ r.total }},{% endfor %}];
+new Chart(document.getElementById('chartCarrera'),{
+    type:'pie',
+    data:{labels:cNombres.length?cNombres:['Sin datos'],datasets:[{data:cTotales.length?cTotales:[1],backgroundColor:C,borderWidth:3,borderColor:'#fff'}]},
+    options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{family:'Nunito',size:11}}}}}
+});
+</script>
+{% endblock %}
